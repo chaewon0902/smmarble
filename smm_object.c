@@ -9,10 +9,26 @@
 #include "smm_object.h"
 #include <string.h>
 
-#define MAX_NODETYPE    7
-#define MAX_GRADE       9
-#define MAX_NODE        100
+#define MAX_NODETYPE	7
+#define MAX_GRADE	 	9
+#define MAX_NODE		100
 
+
+static char smmNodeName [SMMNODE_TYPE_MAX][MAX_CHARNAME] =
+{
+	"강의",
+	"식당",
+	"실험실",
+	"집",
+	"실험실로이동",
+	"음식찬스",
+	"축제시간"
+};
+
+char *smmObj_getTypeName(int type)
+{
+	return (char*)smmNodeName[type];
+} 
 
 
 static char smmObj_name[MAX_NODE][MAX_CHARNAME];
