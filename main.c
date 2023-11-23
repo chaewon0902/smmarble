@@ -127,7 +127,7 @@ int main(int argc, const char * argv[]) {
     
     
     for (i=0;i<board_nr;i++)
-       printf("node %i : %s, %i(%s)\n", i, smmObj_getNodeName(i), smmObj_getNodeType(i));
+       printf("node %i : %s, %i(%s)\n", i, smmObj_getNodeName(i), smmObj_getNodeType(i), smmObj_getTypeName(smmObj_getNodeType(i)));
     
     
     #if 0
