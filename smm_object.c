@@ -95,4 +95,11 @@ int smmObj_getNodeEnergy(void *obj)
 }
 
 
+int smmObj_getNodeGrade(void *obj)
+{
+	smmObject_t* ptr = (smmObject_t*)obj;
+    return ptr->grade;
+}
+
+
 
