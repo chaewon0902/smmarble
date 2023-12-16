@@ -88,7 +88,7 @@ void generatePlayers(int n, int initEnergy) //generate a new player
      {
          //input name
          printf("Input player %i's name:", i); //¾E³≫ ¹®±¸ 
-         scanf("%s", cur_player[i].name);
+         scanf("%19s", cur_player[i].name);
          fflush(stdin);
          
          //set position
@@ -120,31 +120,28 @@ int rolldie(int player)
 }
 
 //action code when a player stays at a node
-void actionNode(int player)
-{
-    void *boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position );
-    //int type = smmObj_getNodeType( cur_player[player].position );
-    int type = smmObj_getNodeType( boardPtr );
-    char *name = smmObj_getNodeName( boardPtr );
-    void *gradePtr = NULL;
-    
-    switch(type)
-{
-    case SMMNODE_TYPE_LECTURE:
-        cur_player[player].accumCredit += smmObj_getNodeCredit(boardPtr);
-        cur_player[player].energy -= smmObj_getNodeEnergy(boardPtr);
-        
-        //grade generation
-        gradePtr = smmObj_genObject(name, smmObjType_grade, 0, smmObj_getNodeCredit(boardPtr), 0, 0);
-        if (gradePtr != NULL) {
+void actionNode(int player) {
+    void *boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position);
+    int type = smmObj_getNodeType(boardPtr);
+    char *name = smmObj_getNodeName(boardPtr);
+    void *gradePtr;
+
+    switch (type) {
+        case SMMNODE_TYPE_LECTURE:
+            cur_player[player].accumCredit += smmObj_getNodeCredit(boardPtr);
+            cur_player[player].energy -= smmObj_getNodeEnergy(boardPtr);
+
+            // grade generation
+            // int gradePtr; // 이 부분은 제거되어야 합니다.
+            smmObj_genObject(name, smmObjType_grade, 0, smmObj_getNodeCredit(boardPtr), 0, 0);
             smmdb_addTail(LISTNO_OFFSET_GRADE + player, gradePtr);
-        } else {
-            // 등급 생성에 실패한 경우의 처리
-        }
-        break;
-        
-    default:
-        break;
+            // 등급 생성에 실패한 경우의 처리가 필요합니다.
+
+            break;
+
+        default:
+            break;
+    }
 }
 
 void goForward(int player, int step)
@@ -186,13 +183,15 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
     
+     
     printf("Reading board component......\n");
     while ( fscanf(fp, "%s %i %i %i", name, &type, &credit, &energy) == 4 ) //read a node parameter set
     {
         //store the parameter set
         //(char* name, smmObjType_e objType, int type, int credit, int energy, smmObjGrade_e grade)
         void *boardObj = smmObj_genObject(name, smmObjType_board, type, credit, energy, 0);
-        smmdb_addTail(LISTNO_NODE, boardObj);
+        
+		smmdb_addTail(LISTNO_NODE, boardObj);
         
         if (type == SMMNODE_TYPE_HOME)
            initEnergy = energy;
@@ -293,3 +292,4 @@ int main(int argc, const char * argv[]) {
     system("PAUSE");
     return 0;
 }
+

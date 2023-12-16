@@ -31,17 +31,7 @@ char* smmObj_getTypeName(int type)
 
 
 
-typedef enum smmObjGrade {
-    smmObjGrade_Ap = 0,
-    smmObjGrade_A0,
-    smmObjGrade_Am,
-    smmObjGrade_Bp,
-    smmObjGrade_B0,
-    smmObjGrade_Bm,
-    smmObjGrade_Cp,
-    smmObjGrade_C0,
-    smmObjGrade_Cm
-} smmObjGrade_e;
+
 
 //1. 구조체 형식 정의
 typedef struct smmObject {
@@ -85,19 +75,23 @@ char* smmObj_getNodeName(void* obj)
 }
 
 
-int smmObj_getNodeType(int node_nr)
+int smmObj_getNodeType(void *obj)
 {
-    return smm_node[node_nr].type;
+    smmObject_t* ptr = (smmObject_t*)obj;
+    // 예를 들어 ptr이 객체의 구조체에 대한 포인터라고 가정
+    return ptr->type; // 객체의 type 속성 반환
 }
 
-int smmObj_getNodeCredit(int node_nr)
+int smmObj_getNodeCredit(void *obj)
 {
-    return smm_node[node_nr].credit;
+	smmObject_t* ptr = (smmObject_t*)obj;
+    return ptr->credit;
 }
 
-int smmObj_getNodeEnergy(int node_nr)
+int smmObj_getNodeEnergy(void *obj)
 {
-    return smm_node[node_nr].energy;
+    smmObject_t* ptr = (smmObject_t*)obj;
+    return ptr->energy;
 }
 
 
