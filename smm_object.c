@@ -33,6 +33,8 @@ char* smmObj_getTypeName(int type)
 
 
 
+
+
 //1. 구조체 형식 정의
 typedef struct smmObject {
        char name[MAX_CHARNAME];

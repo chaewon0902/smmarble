@@ -212,7 +212,7 @@ int main(int argc, const char * argv[]) {
     }
     //printf("(%s)", smmObj_getTypeName(SMMNODE_TYPE_LECTURE));
     
-    #if 0
+    
     //2. food card config 
     if ((fp = fopen(FOODFILEPATH,"r")) == NULL)
     {
@@ -221,15 +221,33 @@ int main(int argc, const char * argv[]) {
     }
     
     printf("\n\nReading food card component......\n");
-    while () //read a food parameter set
+    while (fscanf(fp, "%s %i", name, &energy) == 2) //read a food parameter set
     {
         //store the parameter set
+        void *foodObj = smmObj_genObject(name, smmObjType_food, 0,0, energy, 0);
+        
+		smmdb_addTail(LISTNO_NODE, foodObj);
+        
+        if (smmObj_getNodeType(foodObj) == SMMNODE_TYPE_HOME){
+        	initEnergy = energy;
+		}
+        food_nr++;
     }
     fclose(fp);
     printf("Total number of food cards : %i\n", food_nr);
     
     
+    for (i = 0;i<food_nr;i++)
+    {
+        void *foodObj = smmdb_getData(LISTNO_NODE, i);
+        
+        printf("node %i : %s, %i(%s), credit %i, energy %i\n", 
+                     i, smmObj_getNodeName(foodObj), 
+                     smmObj_getTypeName(smmObj_getNodeType(foodObj)),
+                     smmObj_getNodeEnergy(foodObj));
+	}
     
+    #if 0
     //3. festival card config 
     if ((fp = fopen(FESTFILEPATH,"r")) == NULL)
     {
@@ -244,7 +262,7 @@ int main(int argc, const char * argv[]) {
     }
     fclose(fp);
     printf("Total number of festival cards : %i\n", festival_nr);
-    #endif
+	#endif
     
     
     //2. Player configuration ---------------------------------------------------------------------------------
