@@ -127,10 +127,13 @@ int smmdb_addTail(int list_nr, void* obj)
     }
     else
     {
-        ndPtr = smmList(list_nr, list_cnt[list_nr]-1);
+        ndPtr = list_database[list_nr];
+        while (ndPtr->next != NULL) {
+            ndPtr = ndPtr->next;
+        }
         ndPtr->next = newNdPtr;
         newNdPtr->prev = ndPtr;
-        newNdPtr->index = ndPtr->index+1;
+        newNdPtr->index = list_cnt[list_nr];
     }
     
     listPtr[list_nr] = newNdPtr;
@@ -205,20 +208,29 @@ int smmdb_len(int list_nr)
     input parameters : index
     return value : object pointer
 */
-void* smmdb_getData(int list_nr, int index)
-{
+
+void* smmdb_getData(int list_nr, int index) {
     void* obj = NULL;
-    node_t* ndPtr;
-    
-    //parameter checking
-    if ((ndPtr = smmList(list_nr, index)) != NULL)
-    {
-        obj = (void*)ndPtr->obj;
-        listPtr[list_nr] = ndPtr;
+    node_t* ndPtr = list_database[list_nr];
+
+    // parameter check
+    if (index >= list_cnt[list_nr] || index < 0) {
+        printf("[ERROR] smmdb_getData() : Invalid index %d\n", index);
+        return NULL;
     }
-    
-    if (obj == NULL)
-        printf("[ERROR] smmdb_getData() : there is no data of index %i\n", index);
-    
+
+    // find the node at the given index
+    while (ndPtr != NULL) {
+        if (ndPtr->index == index) {
+            obj = (void*)ndPtr->obj;
+            break;
+        }
+        ndPtr = ndPtr->next;
+    }
+
+    if (obj == NULL) {
+        printf("[ERROR] smmdb_getData() : No data at index %d\n", index);
+    }
+
     return obj;
 }

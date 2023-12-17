@@ -213,6 +213,7 @@ int main(int argc, const char * argv[]) {
     //printf("(%s)", smmObj_getTypeName(SMMNODE_TYPE_LECTURE));
     
     
+    
     //2. food card config 
     if ((fp = fopen(FOODFILEPATH,"r")) == NULL)
     {
@@ -224,7 +225,7 @@ int main(int argc, const char * argv[]) {
     while (fscanf(fp, "%s %i", name, &energy) == 2) //read a food parameter set
     {
         //store the parameter set
-        void *foodObj = smmObj_genObject(name, smmObjType_food, 0,0, energy, 0);
+        void *foodObj = smmObj_genObject(name, smmObjType_food, 0,0, energy, 0); //board와 같은 방식으로 작성 
         
 		smmdb_addTail(LISTNO_NODE, foodObj);
         
@@ -239,9 +240,9 @@ int main(int argc, const char * argv[]) {
     
     for (i = 0;i<food_nr;i++)
     {
-        void *foodObj = smmdb_getData(LISTNO_NODE, i);
+        void *foodObj = smmdb_getData(LISTNO_FOODCARD, i);
         
-        printf("node %i : %s, %i(%s), credit %i, energy %i\n", 
+        printf("node %i : %s, energy %i\n", 
                      i, smmObj_getNodeName(foodObj), 
                      smmObj_getTypeName(smmObj_getNodeType(foodObj)),
                      smmObj_getNodeEnergy(foodObj));
@@ -270,7 +271,7 @@ int main(int argc, const char * argv[]) {
     do
     {
         //input player number to player_nr
-        printf("input player no.:");
+        printf("input player number.:");
         scanf("%d", &player_nr);
         fflush(stdin);
     }
