@@ -18,6 +18,9 @@
 
 #define SMMNODE_TYPE_MAX                7
 
+#define SMMNODE_SUBTYPE_CAFE 			1
+#define SMMNODE_SUBTYPE_BURGER_JOINT 	2
+
 typedef enum smmObjType {
     smmObjType_board = 0,
     smmObjType_card,

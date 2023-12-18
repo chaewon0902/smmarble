@@ -169,8 +169,11 @@ void goForward(int player, int step)
             printf("=> Jump to %s\n", smmObj_getNodeName(boardPtr)); //주사위 나온 값만큼 jump하는 방식 
         }
     }
+	//집에 도착한다면 한바퀴 돌았으므로 에너지 추가로 받음
+	 
 
     if (boardPtr != NULL) {
+    	//강의 칸에 도착하면 join하겠냐고 묻고, 강의 수강하면 학점 얻는 코드 짜기 
     	if (smmObj_getNodeType(boardPtr) == SMMNODE_TYPE_LECTURE) {
         printf(" -> Lecture %s (credit:%d, energy:%d) starts! are you going to join? or drop? :",
                smmObj_getNodeName(boardPtr), smmObj_getNodeCredit(boardPtr), smmObj_getNodeEnergy(boardPtr));
@@ -191,6 +194,7 @@ void goForward(int player, int step)
 		
 		}
 		}
+		// 보충찬스 음식  칸에 도착하면 랜덤으로 카드 고르고, 그거에 맞는 에너지 얻는 코드 
     else if (smmObj_getNodeType(boardPtr) == SMMNODE_TYPE_FOODCHANCE) {
     	printf("%s gets a food chance! press any key to pick a food card : ",cur_player[player].name);
     	getchar(); // 버퍼 비우기
@@ -203,6 +207,29 @@ void goForward(int player, int step)
         printf(" -> %s picks %s and charges %d (remained energy : %d)\n", cur_player[player].name, smmObj_getNodeName(foodCard), foodEnergy, cur_player[player].energy + foodEnergy);
         cur_player[player].energy += foodEnergy;
     }
+    //실험 칸에 도착하면 실험실로 이동하는 코드  (실험 성공 기준값 지정)
+	else if (smmObj_getNodeType(boardPtr) == SMMNODE_TYPE_GOTOLAB) {
+    printf("OMG! This is experiment time!! Player %s goes to the lab.\n", cur_player[player].name);
+    }
+	
+	//식당에 도착하면 에너지를 보충하도록 하는 코드 (카페, 버거집)
+	else if (smmObj_getNodeType(boardPtr) == SMMNODE_TYPE_RESTAURANT) {
+    int energyGained = 0; // 획득한 에너지를 저장할 변수 초기화 해야 함 
+
+    // 레스토랑 노드 유형에 따라 획득한 에너지 다르게 설정
+    int restaurantType = smmObj_getNodeSubType(boardPtr);
+    if (restaurantType == SMMNODE_SUBTYPE_CAFE) {
+        printf("Let's get in cafe and charges 2 energies \n");
+        energyGained = 2;
+    } else if (restaurantType == SMMNODE_SUBTYPE_BURGER_JOINT) {
+        printf("Let's get in 버거집 and charges 6 energies \n");
+        energyGained = 6;
+    }
+
+    cur_player[player].energy += energyGained; // 얻은 에너지를 현재 플레이어의 에너지에 추가합니다.
+    printf("(remained energy : %d)\n", cur_player[player].energy); // 획득한 에너지와 최종 에너지 출력
+}
+    
 	}
 	
 }
