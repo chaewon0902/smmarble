@@ -22,7 +22,8 @@ typedef enum smmObjType {
     smmObjType_board = 0,
     smmObjType_card,
     smmObjType_grade,
-    smmObjType_food //음식 타입 추가하기 
+    smmObjType_food, //음식 타입 추가하기 
+    smmObjType_festival //festival 타입 추가하기 
 } smmObjType_e;
 
 /* node type :

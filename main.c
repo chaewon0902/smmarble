@@ -248,7 +248,7 @@ int main(int argc, const char * argv[]) {
                      smmObj_getNodeEnergy(foodObj));
 	}
     
-    #if 0
+    
     //3. festival card config 
     if ((fp = fopen(FESTFILEPATH,"r")) == NULL)
     {
@@ -257,13 +257,29 @@ int main(int argc, const char * argv[]) {
     }
     
     printf("\n\nReading festival card component......\n");
-    while () //read a festival card string
+    while (fscanf(fp, "%s", name) == 1) //read a festival card string
     {
         //store the parameter set
+        void *festivalObj = smmObj_genObject(name, smmObjType_festival, 0, 0, 0, 0); //board와 같은 방식으로 작성 
+        
+		smmdb_addTail(LISTNO_NODE, festivalObj);
+        
+        
+        festival_nr++;
     }
     fclose(fp);
+    
+    
+    for (i = 0;i<festival_nr;i++)
+    {
+        void *festivalObj = smmdb_getData(LISTNO_FESTCARD, i);
+        
+        printf("node %i : %s, energy %i\n", 
+                     i, smmObj_getNodeName(festivalObj));
+	}
+    
     printf("Total number of festival cards : %i\n", festival_nr);
-	#endif
+	
     
     
     //2. Player configuration ---------------------------------------------------------------------------------
