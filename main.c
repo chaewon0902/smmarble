@@ -17,6 +17,7 @@
 
 
 
+
 //board configuration parameters
 static int board_nr;
 static int food_nr;
@@ -35,6 +36,10 @@ typedef struct player {
 
 static player_t *cur_player;
 //static player_t cur_player[MAX_PLAYER];
+
+
+
+
 
 #if 0
 static int player_energy[MAX_PLAYER];
@@ -198,7 +203,7 @@ int main(int argc, const char * argv[]) {
         board_nr++;
     }
     fclose(fp);
-    printf("Total number of board nodes : %i\n", board_nr);
+    
     
     
     for (i = 0;i<board_nr;i++)
@@ -210,78 +215,93 @@ int main(int argc, const char * argv[]) {
                      smmObj_getNodeType(boardObj), smmObj_getTypeName(smmObj_getNodeType(boardObj)),
                      smmObj_getNodeCredit(boardObj), smmObj_getNodeEnergy(boardObj));
     }
+    printf("Total number of board nodes : %i\n", board_nr);
     //printf("(%s)", smmObj_getTypeName(SMMNODE_TYPE_LECTURE));
     
     
     
-    //2. food card config 
-    if ((fp = fopen(FOODFILEPATH,"r")) == NULL)
+   // 2. food card config 
+if ((fp = fopen(FOODFILEPATH,"r")) == NULL)
+{
+    printf("[ERROR] failed to open %s. This file should be in the same directory of SMMarble.exe.\n", FOODFILEPATH);
+    return -1;
+}
+
+printf("\n\nReading food card component......\n");
+while (fscanf(fp, "%s %i", name, &energy) == 2) // read a food parameter set
+{
+    // store the parameter set
+    void *foodObj = smmObj_genObject(name, smmObjType_food, 0, 0, energy, 0); // board와 같은 방식으로 작성
+
+    // Add foodObj to the correct list (LISTNO_FOODCARD)
+    smmdb_addTail(LISTNO_FOODCARD, foodObj); // Fix this line to add foodObj to the correct list
+    
+    if (smmObj_getNodeType(foodObj) == SMMNODE_TYPE_HOME)
     {
-        printf("[ERROR] failed to open %s. This file should be in the same directory of SMMarble.exe.\n", FOODFILEPATH);
-        return -1;
+        initEnergy = energy;
     }
+    food_nr++;
+}
+fclose(fp);
+
+
+// Print the food cards to verify
+for (i = 0; i < food_nr; i++)
+{
+    void *foodObj = smmdb_getData(LISTNO_FOODCARD, i);
+
+    printf("node %i : %s, energy %i\n",
+             i, smmObj_getNodeName(foodObj),
+             smmObj_getNodeEnergy(foodObj));
+}
+printf("Total number of food cards : %i\n", food_nr);
+
+
+#if 0
+   // 3. festival card config 
+
+if ((fp = fopen(FESTFILEPATH, "r")) == NULL)
+{
+    printf("[ERROR] failed to open %s. This file should be in the same directory of SMMarble.exe.\n", FESTFILEPATH);
+    return -1;
+}
+
+printf("\n\nReading festival card component......\n");
+char festivalName[MAX_NAME]; // 변수 크기를 설정합니다.
+
+while (fscanf(fp, "%s", festivalName) == 1) // 축제 카드 문자열을 읽습니다.
+{
+    // 파라미터 세트 저장
+    void *festivalObj = smmObj_genObject(festivalName, smmObjType_festival, 0, 0, 0, 0);
     
-    printf("\n\nReading food card component......\n");
-    while (fscanf(fp, "%s %i", name, &energy) == 2) //read a food parameter set
-    {
-        //store the parameter set
-        void *foodObj = smmObj_genObject(name, smmObjType_food, 0,0, energy, 0); //board와 같은 방식으로 작성 
-        
-		smmdb_addTail(LISTNO_NODE, foodObj);
-        
-        if (smmObj_getNodeType(foodObj) == SMMNODE_TYPE_HOME){
-        	initEnergy = energy;
-		}
-        food_nr++;
-    }
-    fclose(fp);
-    printf("Total number of food cards : %i\n", food_nr);
-    
-    
-    for (i = 0;i<food_nr;i++)
-    {
-        void *foodObj = smmdb_getData(LISTNO_FOODCARD, i);
-        
-        printf("node %i : %s, energy %i\n", 
-                     i, smmObj_getNodeName(foodObj), 
-                     smmObj_getTypeName(smmObj_getNodeType(foodObj)),
-                     smmObj_getNodeEnergy(foodObj));
-	}
-    
-    
-    //3. festival card config 
-    if ((fp = fopen(FESTFILEPATH,"r")) == NULL)
-    {
-        printf("[ERROR] failed to open %s. This file should be in the same directory of SMMarble.exe.\n", FESTFILEPATH);
-        return -1;
-    }
-    
-    printf("\n\nReading festival card component......\n");
-    while (fscanf(fp, "%s", name) == 1) //read a festival card string
-    {
-        //store the parameter set
-        void *festivalObj = smmObj_genObject(name, smmObjType_festival, 0, 0, 0, 0); //board와 같은 방식으로 작성 
-        
-		smmdb_addTail(LISTNO_NODE, festivalObj);
-        
-        
+    if (festivalObj != NULL) {
+        // 축제 카드를 LISTNO_FESTCARD에 추가합니다.
+        if (smmdb_addTail(LISTNO_FESTCARD, festivalObj) == -1) {
+            printf("[ERROR] Failed to add festival card to the list.\n");
+            return -1;
+        }
         festival_nr++;
+    } else {
+        printf("[ERROR] Failed to generate festival object.\n");
     }
-    fclose(fp);
-    
-    
-    for (i = 0;i<festival_nr;i++)
-    {
-        void *festivalObj = smmdb_getData(LISTNO_FESTCARD, i);
-        
-        printf("node %i : %s, energy %i\n", 
-                     i, smmObj_getNodeName(festivalObj));
-	}
-    
-    printf("Total number of festival cards : %i\n", festival_nr);
-	
-    
-    
+}
+fclose(fp);
+
+printf("Total number of festival cards : %i\n", festival_nr);
+
+// 추가한 축제 카드를 확인합니다.
+for (i = 0; i < festival_nr; i++)
+{
+    void *festivalObj = smmdb_getData(LISTNO_FESTCARD, i);
+
+    if (festivalObj != NULL) {
+        printf("node %i : %s\n", i, smmObj_getNodeName(festivalObj));
+    } else {
+        printf("[ERROR] Failed to retrieve festival card from the list.\n");
+    }
+}
+#endif
+   
     //2. Player configuration ---------------------------------------------------------------------------------
     
     do

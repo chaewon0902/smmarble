@@ -209,28 +209,20 @@ int smmdb_len(int list_nr)
     return value : object pointer
 */
 
-void* smmdb_getData(int list_nr, int index) {
+void* smmdb_getData(int list_nr, int index)
+{
     void* obj = NULL;
-    node_t* ndPtr = list_database[list_nr];
-
-    // parameter check
-    if (index >= list_cnt[list_nr] || index < 0) {
-        printf("[ERROR] smmdb_getData() : Invalid index %d\n", index);
-        return NULL;
+    node_t* ndPtr;
+    
+    //parameter checking
+    if ((ndPtr = smmList(list_nr, index)) != NULL)
+    {
+        obj = (void*)ndPtr->obj;
+        listPtr[list_nr] = ndPtr;
     }
-
-    // find the node at the given index
-    while (ndPtr != NULL) {
-        if (ndPtr->index == index) {
-            obj = (void*)ndPtr->obj;
-            break;
-        }
-        ndPtr = ndPtr->next;
-    }
-
-    if (obj == NULL) {
-        printf("[ERROR] smmdb_getData() : No data at index %d\n", index);
-    }
-
+    
+    if (obj == NULL)
+        printf("[ERROR] smmdb_getData() : there is no data of index %i\n", index);
+    
     return obj;
 }
