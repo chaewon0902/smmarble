@@ -7,6 +7,7 @@
 
 #include <time.h>
 #include <string.h>
+#include <stdlib.h>
 #include "smm_object.h"
 #include "smm_database.h"
 #include "smm_common.h"
@@ -113,13 +114,13 @@ int rolldie(int player)
 {
     char c;
     printf(" Press any key to roll a die (press g to see grade): ");
-    c = getchar();
-    fflush(stdin);
+    scanf("%c", &c); 
     
-#if 1
-    if (c == 'g')
+
+    if (c == 'g') {
         printGrades(player);
-#endif
+	}	
+	
     
     return (rand()%MAX_DIE + 1);
 }
@@ -151,15 +152,60 @@ void actionNode(int player) {
 
 void goForward(int player, int step)
 {
-     void *boardPtr;
-     cur_player[player].position += step;
-     boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position );
-     
-     printf("%s go to node %i (name: %s)\n", 
-                cur_player[player].name, cur_player[player].position,
-                smmObj_getNodeName(boardPtr));
-}
+    void *boardPtr;
+    int i;
+    
+    printf("\n --> result : %d\n", step);
 
+    for (i = 0; i < step; i++) {
+        cur_player[player].position++;
+        boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position);
+
+        if (boardPtr == NULL) {
+            printf("[ERROR] Invalid node. \n");
+            cur_player[player].position--;
+            break;
+        } else {
+            printf("=> Jump to %s\n", smmObj_getNodeName(boardPtr)); //주사위 나온 값만큼 jump하는 방식 
+        }
+    }
+
+    if (boardPtr != NULL) {
+    	if (smmObj_getNodeType(boardPtr) == SMMNODE_TYPE_LECTURE) {
+        printf(" -> Lecture %s (credit:%d, energy:%d) starts! are you going to join? or drop? :",
+               smmObj_getNodeName(boardPtr), smmObj_getNodeCredit(boardPtr), smmObj_getNodeEnergy(boardPtr));
+
+    char choice[10];
+        scanf("%9s", choice); //사용자의 선택을 입력받습니다.
+
+        if (strcmp(choice, "join") == 0) {
+            int energySpent = smmObj_getNodeEnergy(boardPtr); 
+    		cur_player[player].energy -= energySpent; //노드에서 사용한 에너지를 뺀 값을 출력하기 위해 
+			 
+            char grades[] = {'A', 'B', 'C', 'D', 'F'}; //등급: A~F 
+            int randomIndex = rand() % 5; //랜덤으로 등급을 출력한다. 
+            float randomGrade = (float)(rand() % 4) + (float)(rand() % 10) / 10; // 0.0부터 4.9까지의 랜덤한 등급을 생성한다.
+            printf(" -> %s successfully takes the lecture %s with grade %c+ (average : %.6f), remained energy : %d)\n",
+                   cur_player[player].name, smmObj_getNodeName(boardPtr), grades[randomIndex], randomGrade, cur_player[player].energy);
+ 		       
+		
+		}
+		}
+    else if (smmObj_getNodeType(boardPtr) == SMMNODE_TYPE_FOODCHANCE) {
+    	printf("%s gets a food chance! press any key to pick a food card : ",cur_player[player].name);
+    	getchar(); // 버퍼 비우기
+        getchar(); // 사용자 입력 기다리기
+        
+        int randomFoodIndex = rand() % food_nr; 
+        void *foodCard = smmdb_getData(LISTNO_FOODCARD, randomFoodIndex);
+        
+        int foodEnergy = smmObj_getNodeEnergy(foodCard);
+        printf(" -> %s picks %s and charges %d (remained energy : %d)\n", cur_player[player].name, smmObj_getNodeName(foodCard), foodEnergy, cur_player[player].energy + foodEnergy);
+        cur_player[player].energy += foodEnergy;
+    }
+	}
+	
+}
 
 int main(int argc, const char * argv[]) {
     
