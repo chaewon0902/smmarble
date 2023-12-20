@@ -133,21 +133,23 @@ int rolldie(int player)
     int die_result;
     printf(" Press any key to roll a die (press g to see grade): ");
     c = getchar();
-    fflush(stdin);
+    
     
 #if 1
     if (c == 'g')
         printGrades(player);
 #endif
     
-    return (rand()%MAX_DIE + 1);
+     while (getchar() != '\n'); // 버퍼에 남은 개행 문자를 처리하여 입력 스트림을 비웁니다.
+
+    return (rand() % MAX_DIE + 1);
 }
 
 
 
-int checkAlreadyEnrolled(char enrolledCourses[][20], int numEnrolledCourses, char *lectureName) {
+int checkAlreadyEnrolled(char **enrolledCourses, int numEnrolledCourses, char *lectureName) {
     int i;
-	for (i = 0; i < numEnrolledCourses; i++) {
+    for (i = 0; i < numEnrolledCourses; i++) {
         if (strcmp(enrolledCourses[i], lectureName) == 0) {
             // 이미 수강한 강의인 경우
             return 1;
@@ -159,13 +161,10 @@ int checkAlreadyEnrolled(char enrolledCourses[][20], int numEnrolledCourses, cha
 
 
 
-void playPlayerTurn(int playerIndex) {
-    int dieResult = rolldie(playerIndex); //주사위 굴리기
-
-    goForward(playerIndex, dieResult); //플레이어 이동
-
-    // 플레이어가 노드에서 행동을 수행
-    actionNode(playerIndex);
+void playPlayerTurn(int currentPlayer) {
+    printf("Press any key to roll a die (press g to see grade):");
+    getchar(); // 사용자가 키를 입력할 때까지 대기함
+    getchar();
 }
 
 
@@ -180,92 +179,94 @@ void actionNode(int player)
 
 
     	switch (type) {
-        case SMMNODE_TYPE_LECTURE: //강의 듣는 경우 
-    		cur_player[player].accumCredit += smmObj_getNodeCredit(boardPtr);
+        case SMMNODE_TYPE_LECTURE: // 강의 듣는 경우
+		{
     		int energySpent = smmObj_getNodeEnergy(boardPtr);
-    		
-
     		printf(" -> Lecture %s (credit:%d, energy:%d) starts! Are you going to join or drop? :",
         	smmObj_getNodeName(boardPtr), smmObj_getNodeCredit(boardPtr), energySpent);
 
     		char choice[10];
+    		int invalidChoice = 1;
+    		
+    		while (invalidChoice) {
     		scanf("%9s", choice); // 사용자의 선택을 입력받습니다.
 
     		if (strcmp(choice, "join") == 0) {
         	// 충분한 에너지가 있는지 확인합니다.
         	if (energySpent <= cur_player[player].energy) {
-            cur_player[player].energy -= energySpent; // 노드에서 사용한 에너지를 뺀 값을 출력하기 위해 
+            	cur_player[player].energy -= energySpent; // 노드에서 사용한 에너지를 뺀 값을 출력하기 위해
 
-            char grades[] = {'A', 'B', 'C', 'D', 'F'}; // 등급: A~F 
-            int randomIndex = rand() % 5; // 랜덤으로 등급을 출력합니다. 
+            char grades[] = {'A', 'B', 'C', 'D', 'F'}; // 등급: A~F
+            int randomIndex = rand() % 5; // 랜덤으로 등급을 출력합니다.
             float randomGrade = (float)(rand() % 4) + (float)(rand() % 10) / 10; // 0.0부터 4.9까지의 랜덤한 등급을 생성합니다.
-            printf(" -> %s successfully takes the lecture %s with grade %c+ (average : %.6f), remained energy : %d)\n",
+            	printf(" -> %s successfully takes the lecture %s with grade %c+ (average : %.6f), remained energy : %d)\n",
                 cur_player[player].name, smmObj_getNodeName(boardPtr), grades[randomIndex], randomGrade, cur_player[player].energy);
-        	} else {
+            
+            cur_player[player].accumCredit += smmObj_getNodeCredit(boardPtr); // credit 추가
+       		invalidChoice = 0;
+       		
+			} else {
             // 에너지가 부족하여 수강 불가능한 경우
-            printf("%s is too hungry to take the lecture %s\n", cur_player[player].name, smmObj_getNodeName(boardPtr));
-            
-            //이미 수강한 강의인 경우 중복으로 들을 수 없음 
-        	char *lectureName = smmObj_getNodeName(boardPtr);
-        	if (checkAlreadyEnrolled(cur_player[player].enrolledCourses, cur_player[player].numEnrolledCourses, lectureName)) {
-        		printf("%s has already taken the lecture %s\n", cur_player[player].name, lectureName);
-        	break;
+            	printf("%s is too hungry to take the lecture %s\n", cur_player[player].name, smmObj_getNodeName(boardPtr));
+				invalidChoice = 0;
+
+            // 이미 수강한 강의인 경우 중복으로 들을 수 없음
+            char *lectureName = smmObj_getNodeName(boardPtr);
+            if (checkAlreadyEnrolled(cur_player[player].enrolledCourses, cur_player[player].numEnrolledCourses, lectureName)) {
+                printf("%s has already taken the lecture %s\n", cur_player[player].name, lectureName);
+            }
+        }
     }
-    
-    		cur_player[player].enrolledCourses[cur_player[player].numEnrolledCourses++] = lectureName; // 강의를 수강한 목록에 추가
-    		cur_player[player].accumCredit += smmObj_getNodeCredit(boardPtr);
-    		int energySpent = smmObj_getNodeEnergy(boardPtr);
-        	}
-    	}
-   		 break;
-
-            // grade generation
-
-            smmObj_genObject(name, smmObjType_grade, 0, smmObj_getNodeCredit(boardPtr), 0, 0);
-            smmdb_addTail(LISTNO_OFFSET_GRADE + player, gradePtr);
-            
-			break;
+    break;
+}
+}
 			
 		case SMMNODE_TYPE_HOME: //집에 도착한 경우 
 			cur_player[player].energy += 18; // 집에 도착하면 에너지를 18만큼 받음
 			printf("--> returned to HOME!"); 
             printf("energy charged by 18 (total : %d)\n", cur_player[player].energy); // 에너지 증가 확인을 위한 출력
             
+            ;
+            
+            //게임 종료 조건 짜기 - credit 30을 도달한 후 집까지 도착한 플레이어 승리
+			 if (cur_player[player].accumCredit >= 30) {
+        		printf("Player %s reached 30 credits and returned home! \n", cur_player[player].name);
+        
+        		exit(0);
+        	}
             break;
             
-       case SMMNODE_TYPE_RESTAURANT: //식당에 도착한 경우 
-    if (strcmp(name, "cafe") == 0) {
-        cur_player[player].energy += 2; // 카페에 도착했을 때 2만큼의 에너지를 얻음
-        printf("(remained energy : %d)\n", cur_player[player].energy);
-    } else if (strcmp(name, "burger_joint") == 0) {
-        cur_player[player].energy += 6; // 버거집에 도착했을 때 6만큼의 에너지를 얻음
-        printf("(remained energy : %d)\n", cur_player[player].energy);
+       case SMMNODE_TYPE_RESTAURANT: // 식당에 도착한 경우
+       		{
+       		char *restaurantName = smmObj_getNodeName(boardPtr); //레스토랑 이름 가져오기 
+       		int energyGained = smmObj_getNodeEnergy(boardPtr);
+    		cur_player[player].energy += smmObj_getNodeEnergy(boardPtr);
+    		
+			printf("Let's eat in %s and charge %d energies (remained energy : %d)\n", restaurantName, energyGained, cur_player[player].energy);
+    		break;
+        }
+            
+            
+            
+        case SMMNODE_TYPE_GOTOLAB: // 실험실로 가는 경우
+    		printf("OMG! This is experiment time!! Player %s goes to the lab.\n", cur_player[player].name);
+    		
+    		while (1) {
+        	int diceResult = rolldie(player); // 주사위를 굴립니다.
+        	printf("Player %s rolled a %d.\n", cur_player[player].name, diceResult);
+
+        	if (diceResult >= 4) {
+            	printf("Experiment successful!\n");
+            	break; // 주사위 결과가 4 이상이면 실험 성공으로 종료합니다.
+        	} else {
+            	printf("Experiment failed! Player %s will continue the experiment next turn.\n", cur_player[player].name);
+            	printf("Next player's turn...\n");
+            	turn = (turn + 1) % player_nr; // 실험 실패 시 다음 플레이어의 턴으로 넘어갑니다.
+        		break;
+		}
     }
+
     break;
-            
-            
-        case SMMNODE_TYPE_GOTOLAB: //실험하러 가는 경우 
-        	printf("OMG! This is experiment time!! Player %s goes to the lab.\n", cur_player[player].name);
-        	
-        	// 실험 성공 기준을 주사위를 굴려서 4 이상이 나올 때까지 반복합니다.
-    	
-		int diceResult;
-            do {
-                printf("Player %s is conducting an experiment...\n", cur_player[player].name);
-                diceResult = rolldie(player); // 주사위를 굴립니다.
-                printf("Player %s rolled a %d.\n", cur_player[player].name, diceResult);
-
-                if (diceResult >= 4) {
-                    printf("Experiment successful!\n");
-                    break; // 주사위 결과가 4 이상이면 실험 성공으로 종료합니다.
-                } else {
-                    printf("Experiment failed! Player %s will continue the experiment next turn.\n", cur_player[player].name);
-                    printf("Next player's turn...\n");
-                    turn = (turn + 1) % player_nr; // 실험 실패 시 다음 플레이어의 턴으로 넘어갑니다.
-                }
-            } while (1);
-
-            break;
             
     
 
@@ -346,15 +347,13 @@ void goForward(int player, int step)
         boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position);
 
         // 이동한 후의 칸에 대해 행동을 수행합니다.
-     if (boardPtr == NULL) {
-            printf("[ERROR] Invalid node. \n");
-            cur_player[player].position--;
-            break;
-        } else {
-            printf("=> Jump to %s\n", smmObj_getNodeName(boardPtr)); //주사위 나온 값만큼 jump하는 방식 
+     	if (cur_player[player].position == board_nr) { // 현재 위치가 노드 수를 벗어나면 처음 위치로 이동
+            cur_player[player].position = 0;
+            boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position);
         }
-        
-	}
+
+        printf("=> Jump to %s\n", smmObj_getNodeName(boardPtr)); //주사위 나온 값만큼 jump하는 방식 
+    }
 }
 		
 	
