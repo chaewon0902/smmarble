@@ -145,6 +145,31 @@ int rolldie(int player)
 
 
 
+int checkAlreadyEnrolled(char enrolledCourses[][20], int numEnrolledCourses, char *lectureName) {
+    int i;
+	for (i = 0; i < numEnrolledCourses; i++) {
+        if (strcmp(enrolledCourses[i], lectureName) == 0) {
+            // 이미 수강한 강의인 경우
+            return 1;
+        }
+    }
+    // 수강한 강의가 아닌 경우
+    return 0;
+}
+
+
+
+void playPlayerTurn(int playerIndex) {
+    int dieResult = rolldie(playerIndex); //주사위 굴리기
+
+    goForward(playerIndex, dieResult); //플레이어 이동
+
+    // 플레이어가 노드에서 행동을 수행
+    actionNode(playerIndex);
+}
+
+
+
 //action code when a player stays at a node
 void actionNode(int player) 
 {
@@ -158,6 +183,7 @@ void actionNode(int player)
         case SMMNODE_TYPE_LECTURE: //강의 듣는 경우 
     		cur_player[player].accumCredit += smmObj_getNodeCredit(boardPtr);
     		int energySpent = smmObj_getNodeEnergy(boardPtr);
+    		
 
     		printf(" -> Lecture %s (credit:%d, energy:%d) starts! Are you going to join or drop? :",
         	smmObj_getNodeName(boardPtr), smmObj_getNodeCredit(boardPtr), energySpent);
@@ -520,6 +546,6 @@ for (i = 0; i < festival_nr; i++)
     
 	}
     free(cur_player);
-    
+    return 0;
 }
 
