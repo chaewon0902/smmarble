@@ -79,4 +79,7 @@ int smmObj_getNodeEnergy(void *obj);
 char* smmObj_getTypeName(int type);
 char* smmObj_getTypeGrade(int grade);
 
+// calcAverageGrade 함수의 선언
+float calcAverageGrade(int player);
+
 #endif /* smm_object_h */

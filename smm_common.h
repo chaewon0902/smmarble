@@ -21,4 +21,9 @@
 #define MAX_NAME	50
 #define MAX_ENROLLED_COURSES 100
 
+#define HOME_NODE_INDEX 0
+
+#define MIN_GRADUATION_GRADE 2.5f
+#define REQUIRED_CREDITS 30
+ 
 #endif /* smm_common_h */
