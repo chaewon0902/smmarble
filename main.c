@@ -65,7 +65,7 @@ void printGrades(int player); //print all the grade history of the player
 #endif
 
 
-void opening(){
+void opening(){ //오프닝 멘트를  추가했다. 
 	printf("------------------------------------------------------------------------------\n");
 	printf("-----------Sookmyung Marble !! Let's Graduate (total credit : 30)!!-----------\n");
 	printf("------------------------------------------------------------------------------\n");
@@ -73,7 +73,7 @@ void opening(){
 
 
 
-void printGrades(int player)
+void printGrades(int player) 
 {
      int i;
      void *gradePtr;
@@ -84,7 +84,7 @@ void printGrades(int player)
      }
 }
 
-void printPlayerStatus(void)
+void printPlayerStatus(void) //플레이어 별로 학점과 에너지 위치 상태를 나타내기 위한 코드 작성 
 {
      int i;
      
@@ -163,7 +163,7 @@ int checkAlreadyEnrolled(char **enrolledCourses, int numEnrolledCourses, char *l
 
 
 void playPlayerTurn(int currentPlayer) {
-    printf("Press any key to roll a die (press g to see grade):");
+    printf("Press any key to roll a die:");
     getchar(); // 사용자가 키를 입력할 때까지 대기함
     getchar();
 }
@@ -180,8 +180,8 @@ void actionNode(int player)
 
 
     	switch (type) {
-        case SMMNODE_TYPE_LECTURE: // 강의 듣는 경우
-	{
+        case SMMNODE_TYPE_LECTURE: // 강의 노드에서 강의를 듣는 경우 
+		{
     	int energySpent = smmObj_getNodeEnergy(boardPtr);
     		printf(" -> Lecture %s (credit:%d, energy:%d) starts! Are you going to join or drop? :", smmObj_getNodeName(boardPtr), smmObj_getNodeCredit(boardPtr), energySpent);
 
@@ -189,7 +189,7 @@ void actionNode(int player)
     	int invalidChoice = 1;
 
     	while (invalidChoice) {
-        scanf("%9s", choice); // 사용자의 선택을 입력받습니다.
+        scanf("%9s", choice); // 사용자의 선택을 입력받는다 
 
         if (strcmp(choice, "join") == 0) {
             // 충분한 에너지가 있는지 확인합니다.
@@ -219,7 +219,7 @@ void actionNode(int player)
 
             invalidChoice = 0;
         	} else {
-            // join 또는 drop 이외의 응답을 받았을 때
+            // join 또는 drop 이외의 응답을 받았을 때 들으시겠습니까 멘트  다시 출력 
             	printf("Please enter 'join' or 'drop'.\n");
             	printf("Are you going to join or drop? :");
         	}
@@ -236,12 +236,15 @@ void actionNode(int player)
 			printf("--> returned to HOME!"); 
             printf("energy charged by 18 (total : %d)\n", cur_player[player].energy); // 에너지 증가 확인을 위한 출력
         	}
+        	
             
             break;
             
+            
+            
        case SMMNODE_TYPE_RESTAURANT: // 식당에 도착한 경우
        		{
-       		char *restaurantName = smmObj_getNodeName(boardPtr); //레스토랑 이름 가져오기 
+       		char *restaurantName = smmObj_getNodeName(boardPtr); //레스토랑 이름 가져오기 (카페, 버거집) 
        		int energyGained = smmObj_getNodeEnergy(boardPtr);
     		cur_player[player].energy += smmObj_getNodeEnergy(boardPtr);
     		
@@ -254,17 +257,51 @@ void actionNode(int player)
         case SMMNODE_TYPE_GOTOLAB: // 실험실로 가는 경우
     		printf("OMG! This is experiment time!! Player %s goes to the lab.\n", cur_player[player].name);
     		cur_player[player].experience = 1; // 플레이어의 실험 가능 여부 플래그 설정
+    		cur_player[player].position = SMMNODE_TYPE_LABORATORY; // 실험실로 이동
+    		turn = (turn + 1) % player_nr; // 한 턴 넘기기
+	
+	
 
+
+		int player_attempt = 0; // 실험 시도 횟수를 저장할 변수
+
+		case SMMNODE_TYPE_LABORATORY:
+    		if (cur_player[player].experience == 1) {
+        	int threshold = rand() % 6 + 1; // 1에서 6까지의 랜덤한 기준값 설정
+        
+        	printf("-> Experiment time! Let's see if you can satisfy the professor (threshold: %d)\n ", threshold);
+
+        while (player_attempt < 1) { // 실험 반복을 위한 루프 (최대 1회 시도)
+            printf("Press any key to roll a die: ");
+            getchar(); // 버퍼 비우기
+            getchar(); // 사용자 입력 대기
+
+            int diceResult = rand() % 6 + 1; // 1에서 6까지의 랜덤한 주사위 값 설정
+
+            if (diceResult >= threshold) {
+                printf("Success!\n");
+                break; // 성공하면 반복 종료
+            } else {
+                printf("Experiment failed! You need more experiment...\n");
+                cur_player[player].experience = 0;
+                player_attempt++; // 실험 시도 횟수 증가
+            }
+        	}
+        	turn = (turn + 1) % player_nr; // 실험 반복 후 다음 턴으로 이동
+        	player_attempt = 0; // 시도 횟수 초기화
+    	} else {
+        	printf("This is not experiment time. You can go through this lab.\n");
+        	turn = (turn + 1) % player_nr; // 실험 가능하지 않을 경우에도 턴 변경
+    	}
     	break;
-            
-    
 
             
         case SMMNODE_TYPE_FOODCHANCE: //보충 찬스를 얻은 경우 
-        	printf("%s gets a food chance! press any key to pick a food card : ",cur_player[player].name);
+        	printf("%s gets a food chance! press any key to pick a food card : ",cur_player[player].name); 
     		getchar(); // 버퍼 비우기
         	getchar(); // 사용자 입력 기다리기
         
+        	//랜덤으로 음식 카드 중에서 한 장 뽑는다 
         	int randomFoodIndex = rand() % food_nr; 
         	void *foodCard = smmdb_getData(LISTNO_FOODCARD, randomFoodIndex);
         
@@ -279,7 +316,9 @@ void actionNode(int player)
     		printf("%s gets a festival chance! Press any key to pick a festival card:", cur_player[player].name);
     		getchar(); // 입력 버퍼 비우기
     		getchar(); // 사용자 입력 대기
-    
+    		
+    		
+    		//랜덤으로 축제 카드 중에서 한 장 뽑는다 
     		int randomFestivalIndex = rand() % festival_nr; // 랜덤한 축제 카드 인덱스 선택
     		void *festivalCard = smmdb_getData(LISTNO_FESTCARD, randomFestivalIndex); // 선택한 카드 가져오기
     
@@ -287,35 +326,7 @@ void actionNode(int player)
     		break;
 		
 		
-		case SMMNODE_TYPE_LABORATORY: // 실험실에 도착한 경우
-    		if (cur_player[player].experience) {
-        		printf("Experiment time! Let's see if you can satisfy the professor (threshold: %d)\n", rand() % 6 + 1);
-        		printf("Press any key to roll a die: ");
-        	getchar(); // 버퍼 비우기
-        	getchar(); // 사용자 입력 대기
-        
-        	int diceResult = rand() % 6 + 1; // 1에서 6까지의 랜덤한 주사위 값 설정
-        	printf("You rolled a %d.\n", diceResult);
-
-        	int randomValue = rand() % 6 + 1; // 1에서 6까지의 랜덤한 값 설정
-        	printf("Random value set to: %d\n", randomValue);
-
-        	if (diceResult >= randomValue) { // 주사위 값이 설정한 랜덤 값 이상이면 성공으로 처리
-            printf("Success!\n");
-        	} else {
-            	printf("Experiment failed! You need more experiment...\n");
-            	printf("Next player's turn...\n");
-            	turn = (turn + 1) % player_nr;
-        }
-    	} else {
-       		printf("This is not experiment time. You can go through this lab.\n");
-        	turn = (turn + 1) % player_nr;
-    	}
-    	break;
-
-
-
-
+	
         default:
         	
             break;
@@ -324,7 +335,7 @@ void actionNode(int player)
 
 
 
-void goForward(int player, int step) {
+void goForward(int player, int step) { //플레이어가 이동하는 과정 구현 
     void *boardPtr;
     int i;
 
@@ -340,34 +351,18 @@ void goForward(int player, int step) {
 
         printf("=> Jump to %s\n", smmObj_getNodeName(boardPtr)); // 주사위 나온 값만큼 jump하는 방식
     
-		if (cur_player[player].position == HOME_NODE_INDEX) { // 홈 노드에 도착한 경우
-        // 수강한 강의 정보 출력
-        	printf("Congratulations! Player %s graduated!\n", cur_player[player].name);
-        	printGrades(player); // 수강한 강의 정보 출력 함수 호출
-        	printf("Total Accumulated Credits: %d\n", cur_player[player].accumCredit); // 총 학점 출력
-
-        // 성적 평균 계산
-        float avgGrade = calcAverageGrade(player);
-        	printf("Average Grade: %.2f\n", avgGrade); // 성적 평균 출력
-
-        // 졸업 여부에 따른 처리
-        if (avgGrade >= MIN_GRADUATION_GRADE && cur_player[player].accumCredit >= REQUIRED_CREDITS) {
-            printf("Congratulations! Player %s has graduated successfully!\n", cur_player[player].name);
-            printf("Game Over - Player %s has graduated!\n", cur_player[player].name);
-            exit(0); 
-        } else {
-            printf("Unfortunately, Player %s did not meet the graduation requirements.\n", cur_player[player].name);
-        }
+		
     }
 
 	}
-}
 
 
-float convertGradeToPoint(const char* grade) {
+
+float convertGradeToPoint(const char* grade) {  //강의 듣고 받은 학점을 점수로 변환하기 위한 코드 작성 
     
     float point = 0.0;
 
+	//학점 별로 해당하는 점수 부여했다 
     if (strcmp(grade, "A") == 0) {
         point = 4.3;
     } else if (strcmp(grade, "B") == 0) {
@@ -377,16 +372,17 @@ float convertGradeToPoint(const char* grade) {
     } else if (strcmp(grade, "D") == 0) {
         point = 1.3;
     } else if (strcmp(grade, "F") == 0) {
-        point = 0.0;
+        point = 0.3;
     }
 
     return point;
 }
 
-float calcAverageGrade(int player) {
+float calcAverageGrade(int player) { //수강한 강의들에 대한 평균 성적을 계산하는 함수로, 게임 종료 시 학점 평균을 출력한다. 
     int i;
-    float totalGrade = 0.0;
+    float totalGrade = 0.0; //초기화 
 
+	//총 수강한 강의들을 반복하면서 converGradeToPoint 함수를 이용해 학점을 점수로 변환하고, totalGrade에 저장한 후, 수강한 강의 수로 나누어서 평균 성적을 계산 
     for (i = 0; i < cur_player[player].numEnrolledCourses; i++) {
         totalGrade += convertGradeToPoint(cur_player[player].enrolledCourses[i]);
     }
@@ -394,7 +390,25 @@ float calcAverageGrade(int player) {
     return totalGrade / cur_player[player].numEnrolledCourses;
 }
 		
-	
+		
+		
+//게임 종료 여부 확인을 위한 코드 
+ int isGameOver() {
+    // 플레이어가 30 학점을 모두 취득하고 집에 도착했을 때 게임 종료하도록 함
+    int i;
+    for (i = 0; i < player_nr; ++i) {
+        if (cur_player[i].accumCredit >= 30 && cur_player[i].position == initial_position[i]) {
+            printf("Congratulations! Player %s has graduated!\n", cur_player[i].name);
+            printf("Course Grades for Player %s:\n", cur_player[i].name);
+            printGrades(i); // 해당 플레이어가 들은 강의 이름과 성적 출력
+            float averageGrade = calcAverageGrade(i); // 평균 성적 계산
+            printf("Average Grade for Player %s: %.2f\n", cur_player[i].name, averageGrade); // 평균 성적 출력
+
+            return 1; // 게임 종료 조건 충 
+        }
+    }
+    return 0; // 게임 종료 조건 미충족
+}
 
 
 int main(int argc, const char * argv[]) {
@@ -413,7 +427,8 @@ int main(int argc, const char * argv[]) {
     
     srand(time(NULL));
     
-    //0. opening
+    
+    //0. opening--------------------------------------------------------------------------------------------
     opening();
     
     
@@ -525,8 +540,6 @@ while (fscanf(fp, "%s", festivalName) == 1) // 축제 카드 문자열을 읽습니다.
 }
 fclose(fp);
 
-printf("Total number of festival cards : %i\n", festival_nr);
-
 // 추가한 축제 카드를 확인합니다.
 for (i = 0; i < festival_nr; i++)
 {
@@ -538,7 +551,7 @@ for (i = 0; i < festival_nr; i++)
         printf("[ERROR] Failed to retrieve festival card from the list.\n");
     }
 }
-
+printf("Total number of festival cards : %i\n", festival_nr);
    
     //2. Player configuration ---------------------------------------------------------------------------------
     
@@ -584,6 +597,13 @@ for (i = 0; i < festival_nr; i++)
         turn = (turn + 1)%player_nr;
     
     
+    if (isGameOver()) {
+        printf("Game Over!\n");
+        break; // 게임 종료 조건 충족 시 루프를 종료합니다.
+    } 
+    
+    
+    turn = (turn + 1) % player_nr;
 	}
     free(cur_player);
     return 0;
