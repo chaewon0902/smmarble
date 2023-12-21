@@ -163,9 +163,7 @@ int checkAlreadyEnrolled(char **enrolledCourses, int numEnrolledCourses, char *l
 
 
 void playPlayerTurn(int currentPlayer) {
-    printf("Press any key to roll a die:");
-    getchar(); // 사용자가 키를 입력할 때까지 대기함
-    getchar();
+    rolldie(currentPlayer); 
 }
 
 
@@ -263,15 +261,16 @@ void actionNode(int player)
 	
 
 
-		int player_attempt = 0; // 실험 시도 횟수를 저장할 변수
-
-		case SMMNODE_TYPE_LABORATORY:
+		
+		//실험실 코드에서 오류를 수정하지 못한 부분이 있다. 실험 시간이 바로 이어지는 것이 아니라 다음 턴부터 실험을 해야하는데 turn을 바꾸는 것으로 구현하면 된다고 생각했으나 구현이 잘 안됐다.
+		//그리고 실험이 실패했을 경우, 다시 실험을 진행하도록 멘트가 출력되나, 다음 턴에서 실험을 진행하지 않는 오류가 발생하여 무한루프로 해결하고자 했으나 해결하지 못했다. 
+		case SMMNODE_TYPE_LABORATORY: 
     		if (cur_player[player].experience == 1) {
         	int threshold = rand() % 6 + 1; // 1에서 6까지의 랜덤한 기준값 설정
         
-        	printf("-> Experiment time! Let's see if you can satisfy the professor (threshold: %d)\n ", threshold);
 
-        while (player_attempt < 1) { // 실험 반복을 위한 루프 (최대 1회 시도)
+        	while (1) { // 실험 반복을 위한 루프
+        	printf("-> Experiment time! Let's see if you can satisfy the professor (threshold: %d)\n ", threshold);
             printf("Press any key to roll a die: ");
             getchar(); // 버퍼 비우기
             getchar(); // 사용자 입력 대기
@@ -283,17 +282,17 @@ void actionNode(int player)
                 break; // 성공하면 반복 종료
             } else {
                 printf("Experiment failed! You need more experiment...\n");
-                cur_player[player].experience = 0;
-                player_attempt++; // 실험 시도 횟수 증가
+                cur_player[player].experience = 1; // 실험 가능하도록 experience 값을 1로 설정
+                printf("Next turn, %s will try the experiment again.\n", cur_player[player].name);
+                break; // (다음 턴에 다시 시도하도록)
             }
-        	}
-        	turn = (turn + 1) % player_nr; // 실험 반복 후 다음 턴으로 이동
-        	player_attempt = 0; // 시도 횟수 초기화
-    	} else {
-        	printf("This is not experiment time. You can go through this lab.\n");
-        	turn = (turn + 1) % player_nr; // 실험 가능하지 않을 경우에도 턴 변경
-    	}
-    	break;
+                
+            }
+    		} else {
+        		printf("This is not experiment time. You can go through this lab.\n");
+        		turn = (turn + 1) % player_nr; // 실험 가능하지 않을 경우에도 턴 변경
+    		}
+    		break;
 
             
         case SMMNODE_TYPE_FOODCHANCE: //보충 찬스를 얻은 경우 
@@ -404,7 +403,7 @@ float calcAverageGrade(int player) { //수강한 강의들에 대한 평균 성적을 계산하는
             float averageGrade = calcAverageGrade(i); // 평균 성적 계산
             printf("Average Grade for Player %s: %.2f\n", cur_player[i].name, averageGrade); // 평균 성적 출력
 
-            return 1; // 게임 종료 조건 충 
+            return 1; // 게임 종료 조건 충 족 
         }
     }
     return 0; // 게임 종료 조건 미충족
@@ -597,6 +596,9 @@ printf("Total number of festival cards : %i\n", festival_nr);
         turn = (turn + 1)%player_nr;
     
     
+    //게임을 종료하는 조건에서 해결하지 못한 오류가 있다. 위에서 int isGameOver를 이용해 게임 종료문을 만들었고, 마지막에 호출하도록 구성했는데
+	//게임을 진행해보면 어떤 경우에는 게임이 종료되고, 어떤 경우에는 종료되지 않는 문제가 발생한다.
+	//GoForWard 안에 졸업 조건 달성 유무, 홈 노드 도착 유무를 이용해 둘 다 만족할 경우를 1로 잡고 코드를 짜면 될 것 같은데 구현하지 못했다. 
     if (isGameOver()) {
         printf("Game Over!\n");
         break; // 게임 종료 조건 충족 시 루프를 종료합니다.
