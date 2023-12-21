@@ -127,7 +127,7 @@ void generatePlayers(int n, int initEnergy) //generate a new player
      }
 }
 
-
+//press any key to roll a die가 두번씩 나오는 오류가 생기는데 playPlayerTurn 부분 때문인 것 같다. 두번 돌아가게 설정된 것 같다. int rolldie 안에 void playPlayerTurn을 넣어서 함수를 구성하는 방법을 써야할 것 같은데 구현하지 못했다. 
 int rolldie(int player)
 {
     char c;
@@ -136,10 +136,10 @@ int rolldie(int player)
     c = getchar();
     
     
-#if 1
+
     if (c == 'g')
         printGrades(player);
-#endif
+
     
      while (getchar() != '\n'); // 버퍼에 남은 개행 문자를 처리하여 입력 스트림을 비웁니다.
 
